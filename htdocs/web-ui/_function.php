@@ -34,7 +34,7 @@ function getAuthDetail($username, $password, $databaseNo) {
     } else if (sizeof($dbPolicies) < 1) {
         $message = "You don't have any database access policies. ";
         $message .= "You probably aren't in an LDAP group that has database access";
-        messageResponse(ERROR, $message);
+        messageResponse(ERROR, getErrorHtmlOutput($message));
     } else {
         $policyNo = 0;
     }
@@ -95,7 +95,7 @@ function getVaultResponseViaLoginRequest($username, $password) {
         $client_token = getResultByKey(CLIENT_TOKEN, $auth);
         $policies = getResultByKey(POLICIES, $auth);
     } else {
-        messageResponse(ERROR, "Failed to get client token");
+        messageResponse(ERROR, getErrorHtmlOutput("Failed to get client token"));
     }
 
     return array(AUTH=>$auth, CLIENT_TOKEN=>$client_token, POLICIES=>$policies);
@@ -113,9 +113,9 @@ function getResultByKey($key, $result) {
             return $result[$key];
         }
     } else {
-        messageResponse(ERROR, "Unable to find $key due to empty result.");
+        messageResponse(ERROR, getErrorHtmlOutput("Unable to find $key due to empty result."));
     }
-    messageResponse(ERROR, "$key is not found.");
+    messageResponse(ERROR, getErrorHtmlOutput("$key is not found."));
 }
 
 /**
@@ -253,6 +253,18 @@ function getDatabaseHtmlList() {
 */
 function getDatabaseMap() {
     return array("1"=>"saint-usercontent", "2"=>"itinerary", "3"=>"vcs", "4"=>"nsp");
+}
+
+/**
+ * getErrorHtmlOutput: get error html out
+ * @return array
+ */
+function getErrorHtmlOutput($output) {
+    $html = "<div><ul class=\"list-group\">";
+    $html = $html . "<li class=\"list-group-item list-group-item-danger\">";
+    $html = $html . "<i class=\"glyphicon glyphicon-remove-circle\"></i> " . $output . "</li>";
+    $html .= "</ul></div>";
+    return $html;
 }
 
 /**

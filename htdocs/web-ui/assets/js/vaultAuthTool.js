@@ -24,9 +24,7 @@ $(function() {
             success: function(data) {
                 debugger;
                 var response = data.responseText;
-                if (response["STATUS"] == "success") {
-                    $("#authResult").html(response["RESULT"]);
-                }
+                $("#authResult").html(response["RESULT"]);
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 if(textStatus === "timeout") {
@@ -51,9 +49,7 @@ $(function() {
             url: "api.VaultAuthTool.php?database=list",
             success: function(data) {
                 var response = data.responseText;
-                if (response["STATUS"] == "success") {
-                    $("#databaseSelection").html(response["RESULT"]);
-                }
+                $("#databaseSelection").html(response["RESULT"]);
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 if(textStatus === "timeout") {
@@ -76,7 +72,6 @@ $(function() {
 
     function prepare() {
         removeAlertMessage();
-        $("#message").removeClass("alert").empty();
         $("#authResult").empty().append(displayLoading());
         changeButtonDisabled("databaseList", true);
     }
@@ -102,23 +97,30 @@ $(function() {
 
     function validation() {
         var isInvalid = false;
-        $("#message").empty();
+        debugger;
         if (($.trim($("#username").val()) == "") ||  ($.trim($("#password").val()) == "")) {
-            $("#message").html("<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The username and password cannot be empty!<br/>");
+            $("#authResult").html("<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The username and password cannot be empty!<br/>");
             isInvalid = true;
         }
-        if (($.trim($("#databaseNo").val()) == "")) {
+
+        var databaseNo = $.trim($("#databaseNo").val());
+        if ((databaseNo == "")) {
             var emptyDatabaseNoText = "<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The database number can not be empty!<br/>";
-            $("#message").append(emptyDatabaseNoText);
+            $("#authResult").append(emptyDatabaseNoText);
             isInvalid = true;
-        } else  if ((($("#databaseNo").val() < 1) || ($("#databaseNo").val() > 4))) {
+        } else if (!(Math.floor(databaseNo) == databaseNo && $.isNumeric(databaseNo))) {
+            var invalidDatabaseNoFormat = "<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The database number need to be integer.";
+            $("#authResult").append(invalidDatabaseNoFormat);
+            isInvalid = true;
+
+        } else if (((databaseNo < 1) || (databaseNo > 4))) {
             var invalidDatabaseNoText = "<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The database number need to be between 1 to 4.";
-            $("#message").append(invalidDatabaseNoText);
+            $("#authResult").append(invalidDatabaseNoText);
             isInvalid = true;
         }
 
         if (isInvalid) {
-            $("#message").addClass("alert alert-danger");
+            $("#authResult").addClass("alert alert-danger");
             cleanRealtimeElements();
         }
 

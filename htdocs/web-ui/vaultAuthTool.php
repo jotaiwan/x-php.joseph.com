@@ -35,8 +35,6 @@
         <hr>
 
         <div id="userCredentials" class="col-xs-12">
-            <div id="message"></div>
-
             <div class="col-md-6 col-md-offset-3">
                 <form class="form-inline" id="userCredentialForm" name="userCredentialForm" method="POST" action="api.VaultAuthTool.php" onsubmit="return false;">
                     <div class="row">

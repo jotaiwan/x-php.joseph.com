@@ -13,22 +13,16 @@ include_once ($_SERVER['DOCUMENT_ROOT'] . "/web-ui/_function.php");
 define("VALUT_LDAP_LOGIN_PATH_PROD", "https://vault-syd1.prod.viatorsystems.com/v1/auth/ldap_db/login/%s");
 define("MESSAGE_BEGIN_END", "***** %s ***** <p/>");
 
-// Need to find test account for this
-$mockUsername = "";
-$mockPassword = "";
-$mockDatabaseNo = "2";
-
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $mockUsername = $_POST["mockUsername"];
     $mockPassword = $_POST["mockPassword"];
     $mockDatabaseNo = $_POST["mockDatabaseNo"];
 
-
     testGetDatabaseList();
 
     testGetVaultClientToken($mockUsername, $mockPassword);
 
+    testGetAuthDetail($username, $password, $databaseNo);
 }
 
 function testGetDatabaseList() {
@@ -45,6 +39,14 @@ function testGetVaultClientToken($username, $password) {
     echo "Vault client Token: <p/>";
     echo json_encode(getVaultResponseViaLoginRequest($username, $password)) . "<p/>";
     echo sprintf(MESSAGE_BEGIN_END, "testGetVaultClientToken :: END");
+}
+
+
+function testGetAuthDetail($username, $password, $databaseNo) {
+    echo sprintf(MESSAGE_BEGIN_END, "testGetAuthDetail :: START");
+    echo "Auth detail: <p/>";
+    echo json_encode(getAuthDetail($username, $password, $databaseNo)) . "<p/>";
+    echo sprintf(MESSAGE_BEGIN_END, "testGetAuthDetail :: END");
 }
 
 ?>
