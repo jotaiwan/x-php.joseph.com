@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST["username"];
     $password = $_POST["password"];
 
-    $result = getDatabaseCredentials($env, $username, $password) ;
+    $result = getVaultClientToken($env, $username, $password) ;
     echo json_encode($result);
 }
 

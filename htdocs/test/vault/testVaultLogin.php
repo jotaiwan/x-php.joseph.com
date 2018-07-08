@@ -10,50 +10,60 @@
 
 define("VALUT_LDAP_LOGIN_PATH_PROD", "https://vault-syd1.prod.viatorsystems.com/v1/auth/ldap_db/login/%s");
 
+define("AUTH", "auth");
+define("CLIENT_TOKEN", "client_token");
+define("POLICIES", "policies");
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $env = "int";
     $username = $_POST["username"];
     $password = $_POST["password"];
 
-    $result = getDatabaseCredentials($env, $username, $password) ;
+    $result = getVaultClientToken($env, $username, $password) ;
+    $result = json_decode($result, true);
 
-    echo ">>> " . $result;
-    $result = json_decode($result);
+    $auth = getResultByKey($result, AUTH);
+    $client_token = getResultByKey($auth, CLIENT_TOKEN);
+    $policies = getResultByKey($auth, POLICIES);
 
-    // start rendering the rest of vault thing..
-    if (! array_key_exists("auth", $result)) {
-        echo "Auth is not found!";
+    echo "All results: " . json_encode($result) . "<p/>";
+
+    $dbPolicies = getDatabasePolicies($policies);
+    $policyNo = 0;
+    if (sizeof($dbPolicies) > 1) {
+        // TODO:
+        // print enter the number... and assign $policyNo to be selected
+    } else if (sizeof($dbPolicies) < 1) {
+        // TODO:
+        // print you dont have database access
     } else {
-        if (! array_key_exists("client_token", $result["client_token"])) {
-            echo "client token is not found";
-        } else {
-            echo "let's do something here";
-        }
+        $policyNo = 0;
     }
 
 
-    $keyNotFoundMessages = doKeysExist($result, array("auth", "client_token"));
-    if (!empty($keyNotFoundMessages)) {
-        // print and exit
-        echo "error==> " . json_encode($keyNotFoundMessages);
+}
+
+function getResultByKey($result, $key) {
+    if (array_key_exists($key, $result)) {
+        return $result[$key];
     }
 
-    echo "let's do next step";
+//    messageResponse("$key is not found!");
+    exit();
 }
 
 
-function doKeysExist($result, $keys) {
-    $messages = array();
-    foreach ($keys as $key) {
-        if (!array_key_exists($key, $result)) {
-            array_push($messages, array($key=>"$key is not found"));
+function getDatabasePolicies($policies) {
+    $dbPolicies = array();
+    foreach ($policies as $policy) {
+        if (substr( $policies, 0, 3 ) === "db-") {
+            array_push($dbPolicies, $policies);
         }
     }
-    return $messages;
+    return $dbPolicies;
+
 }
-
-
 
 function getDatabaseCredentials($environment, $username, $password) {
     $vaultLdapLoginFullPath = str_replace("%s", $username, VALUT_LDAP_LOGIN_PATH_PROD);
@@ -62,7 +72,6 @@ function getDatabaseCredentials($environment, $username, $password) {
     echo "vault login full path: $vaultLdapLoginFullPath!! <p/>";
     return getCurlResult($vaultLdapLoginFullPath, $data);
 }
-
 
 
 /**
