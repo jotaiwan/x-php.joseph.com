@@ -23,21 +23,16 @@ define("VALID_DURATION", "valid_duration");
 define("SUCCESS", "success");
 define("ERROR", "danger");
 
-function getAuthDetail($username, $password, $databaseNo) {
+// output div
+define("DATABASE_LIST", "databaseList");
+define("POLICY_LIST", "policyList");
+define("AUTH_RESULT", "authResult");
+
+function getAuthDetail($username, $password, $databaseNo, $policyNo) {
 
     $result = getVaultResponseViaLoginRequest($username, $password);
     $dbPolicies = getDatabasePolicies($result[POLICIES]);
-
-    if (sizeof($dbPolicies) > 1) {
-        // TODO: select available policies
-//        messageResponse(SUCCESS, getAvailablePolicies($dbPolicies));
-    } else if (sizeof($dbPolicies) < 1) {
-        $message = "You don't have any database access policies. ";
-        $message .= "You probably aren't in an LDAP group that has database access";
-        messageResponse(ERROR, getErrorHtmlOutput($message));
-    } else {
-        $policyNo = 0;
-    }
+//    $dbPolicies[] = "db-test";
 
     $selectedPolicy = getSelectedPolicy($dbPolicies, $policyNo);
 
@@ -54,7 +49,7 @@ function getAuthDetail($username, $password, $databaseNo) {
         $authOutput = array(END_POINT=>$authEndPoint, USERNAME=>$authUsername, PASSWORD=>$authPassword,
             VALID_DURATION=>$authLeaseDuration);
 
-        messageResponse(SUCCESS, getAuthDetailHtmlResults($authOutput));
+        messageResponse(SUCCESS, AUTH_RESULT, getAuthDetailHtmlResults($authOutput));
     }
     exit();
 }
@@ -77,6 +72,19 @@ function getAuthDetailUsingClientToken($clientToken, $selectedPolicy, $databaseN
  * @return array()
 */
 function getSelectedPolicy($policies, $policyNo) {
+    if ($policyNo == null) {
+        if (sizeof($policies) > 1) {
+            // if there are more than 1 database policy, we need to get user to specify it
+            messageResponse(SUCCESS, POLICY_LIST, getHtmlWithMultiPolicies($policies));
+        } else if (sizeof($policies) < 1) {
+            $message = "You don't have any database access policies. ";
+            $message .= "You probably aren't in an LDAP group that has database access";
+            messageResponse(ERROR, AUTH_RESULT, getErrorHtmlOutput($message));
+        } else {
+            $policyNo = 0;
+        }
+    }
+
     return substr($policies[$policyNo], 3);
 }
 
@@ -95,7 +103,7 @@ function getVaultResponseViaLoginRequest($username, $password) {
         $client_token = getResultByKey(CLIENT_TOKEN, $auth);
         $policies = getResultByKey(POLICIES, $auth);
     } else {
-        messageResponse(ERROR, getErrorHtmlOutput("Failed to get client token"));
+        messageResponse(ERROR, AUTH_RESULT, getErrorHtmlOutput("Failed to get client token"));
     }
 
     return array(AUTH=>$auth, CLIENT_TOKEN=>$client_token, POLICIES=>$policies);
@@ -113,9 +121,9 @@ function getResultByKey($key, $result) {
             return $result[$key];
         }
     } else {
-        messageResponse(ERROR, getErrorHtmlOutput("Unable to find $key due to empty result."));
+        messageResponse(ERROR, AUTH_RESULT, getErrorHtmlOutput("Unable to find $key due to empty result."));
     }
-    messageResponse(ERROR, getErrorHtmlOutput("$key is not found."));
+    messageResponse(ERROR, AUTH_RESULT, getErrorHtmlOutput("$key is not found."));
 }
 
 /**
@@ -131,6 +139,18 @@ function getVaultClientToken($username, $password) {
     $header = array("Content-Type: application/json", "Content-Length: " . strlen($data), "Accept: text/plain");
 
     return getCurlResultViaPost($vaultLdapLoginFullPath, $data, $header);
+}
+
+function getHtmlWithMultiPolicies($dbPolicies) {
+    $html = "<ul class=\"list-group\">";
+    $html .= "<li class=\"list-group-item\"><strong>Policies</strong></li>";
+    foreach ($dbPolicies as $key => $value) {
+        $html = $html . "<li class=\"list-group-item\">" . $key . ": " . $value . "</li>";
+    }
+    $html .= "<li class=\"list-group-item\">Please enter the policy number: ";
+    $html .= "<input type=\"text\" class=\"form-control\" id=\"policyNo\" name=\"policyNo\" maxlength=\"1\" size=\"1\"/>";
+    $html .= "</ul>";
+    return $html;
 }
 
 /**
@@ -218,13 +238,12 @@ function getCurlResult($url, $options) {
  */
 function getAuthDetailHtmlResults($results) {
     $html = "<ul class=\"list-group\">";
-    $html .= "<li class=\"list-group-item list-group-item-success\">Results: </li>";
+    $html .= "<li class=\"list-group-item list-group-item-success\"><h4>Results</h4></li>";
     foreach ($results as $key => $value) {
         $html .= "<li class=\"list-group-item\">";
         $html .= ("<h5 class=\"list-group-item-heading\">" . $key . ":</h5>");
         $html .= ("<p class=\"list-group-item-text\">" . $value . "</p>");
         $html .= "</li>";
-//        $html = $html . "<li class=\"list-group-item\">" . $key . ": " . $value . "</li>";
     }
     $html .= "</ul>";
     return $html;
@@ -238,6 +257,7 @@ function getAuthDetailHtmlResults($results) {
  */
 function getDatabaseHtmlList() {
     $html = "<ul class=\"list-group\">";
+    $html .= "<li class=\"list-group-item\"><strong>Databases</strong></li>";
     foreach (getDatabaseMap() as $key => $value) {
         $html = $html . "<li class=\"list-group-item\">" . $key . ": " . $value . "</li>";
     }
@@ -272,8 +292,8 @@ function getErrorHtmlOutput($output) {
  * @param $status: response status
  * @param $responseText: response text
  */
-function messageResponse($status, $responseText) {
-    echo getMessageResponse(array("STATUS"=>$status, "RESULT"=>$responseText));
+function messageResponse($status, $outputDiv, $responseText) {
+    echo getMessageResponse(array("STATUS"=>$status, "DIV"=>$outputDiv, "RESULT"=>$responseText));
     exit();
 }
 

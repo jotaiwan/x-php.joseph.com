@@ -3,11 +3,11 @@ $(function() {
     // load database list and display
     getDatabaseList();
 
-    $("#databaseList").on("click", function() {
+    $("#searchAuth").on("click", function() {
         // remove alert message
         prepare();
-
         if (!validation()) {
+            $("#authResult").empty().append(displayLoading());
             var data = $("#userCredentialForm").serialize();
             var url = $("#userCredentialForm").attr("action");
             getResult(url, data);
@@ -22,9 +22,9 @@ $(function() {
             url: "api.VaultAuthTool.php",
             data: data,
             success: function(data) {
-                debugger;
                 var response = data.responseText;
-                $("#authResult").html(response["RESULT"]);
+                var divElement = getDivElement(response["DIV"]);
+                divElement.html(response["RESULT"]);
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 if(textStatus === "timeout") {
@@ -49,7 +49,8 @@ $(function() {
             url: "api.VaultAuthTool.php?database=list",
             success: function(data) {
                 var response = data.responseText;
-                $("#databaseSelection").html(response["RESULT"]);
+                var divElement = getDivElement(response["DIV"]);
+                divElement.html(response["RESULT"]);
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 if(textStatus === "timeout") {
@@ -72,7 +73,6 @@ $(function() {
 
     function prepare() {
         removeAlertMessage();
-        $("#authResult").empty().append(displayLoading());
         changeButtonDisabled("databaseList", true);
     }
 
@@ -97,25 +97,24 @@ $(function() {
 
     function validation() {
         var isInvalid = false;
-        debugger;
         if (($.trim($("#username").val()) == "") ||  ($.trim($("#password").val()) == "")) {
-            $("#authResult").html("<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The username and password cannot be empty!<br/>");
+            addMessage("authResult", "<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The username and password cannot be empty!<br/>");
             isInvalid = true;
         }
 
         var databaseNo = $.trim($("#databaseNo").val());
         if ((databaseNo == "")) {
             var emptyDatabaseNoText = "<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The database number can not be empty!<br/>";
-            $("#authResult").append(emptyDatabaseNoText);
+            addMessage("authResult", emptyDatabaseNoText);
             isInvalid = true;
         } else if (!(Math.floor(databaseNo) == databaseNo && $.isNumeric(databaseNo))) {
             var invalidDatabaseNoFormat = "<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The database number need to be integer.";
-            $("#authResult").append(invalidDatabaseNoFormat);
+            addMessage("authResult", invalidDatabaseNoFormat);
             isInvalid = true;
 
         } else if (((databaseNo < 1) || (databaseNo > 4))) {
             var invalidDatabaseNoText = "<i class=\"glyphicon glyphicon-remove-circle\"></i>&nbsp;The database number need to be between 1 to 4.";
-            $("#authResult").append(invalidDatabaseNoText);
+            addMessage("authResult", invalidDatabaseNoText);
             isInvalid = true;
         }
 
@@ -125,6 +124,23 @@ $(function() {
         }
 
         return isInvalid;
+    }
+
+    function addMessage(div, message) {
+        var divElement = getDivElement(div);
+        if (divElement.is(":empty")) {
+            divElement.html(message);
+        } else {
+            divElement.append(message);
+        }
+    }
+
+    function getDivElement(divName) {
+        if (divName.indexOf("#") == -1) {
+            divName = "#" + divName;
+        }
+        return $(divName);
+
     }
 
 });

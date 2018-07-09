@@ -21,11 +21,16 @@ if (isset($_POST["databaseNo"])) {
     $databaseNo = $_POST["databaseNo"];
 }
 
-if (isset($_GET["database"]) && ($_GET["database"] == "list")) {
-    messageResponse(SUCCESS, getDatabaseHtmlList());
-    exit();
+if (isset($_POST["policyNo"])) {
+    $policyNo = $_POST["policyNo"];
+} else {
+    $policyNo = null;
 }
 
-getAuthDetail($username, $password, $databaseNo);
+if (isset($_GET["database"]) && ($_GET["database"] == "list")) {
+    messageResponse(SUCCESS, DATABASE_LIST, getDatabaseHtmlList());
+}
+
+getAuthDetail($username, $password, $databaseNo, $policyNo);
 
 ?>

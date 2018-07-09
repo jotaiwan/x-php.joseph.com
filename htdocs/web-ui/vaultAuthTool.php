@@ -46,12 +46,13 @@
                                 <div class="form-group">
                                     <input type="password" class="form-control" id="password" name="password" placeholder="TA Password"/>
                                 </div>
-                                <input class="btn btn-info" id="databaseList" type="button" value="Search">
+                                <input class="btn btn-info" id="searchAuth" type="button" value="Search">
                             </li>
                         </ul>
                     </div>
 
-                    <div class="row"><div id="databaseSelection" class="col-xs-12"></div></div>
+                    <div class="row"><div id="databaseList" class="col-xs-12"></div></div>
+                    <div class="row"><div id="policyList" class="col-xs-12"></div></div>
                 </form>
 
                 <div id="authResult"></div>
