@@ -6,6 +6,9 @@
  * Time: 10:37 AM
  */
 
-phpinfo();
+if ($_GET['info'] ?? false) {
+    phpinfo();
+}
+
 
 ?>
